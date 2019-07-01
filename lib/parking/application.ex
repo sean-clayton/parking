@@ -3,6 +3,8 @@ defmodule Parking.Application do
   # for more information on OTP Applications
   @moduledoc false
 
+  @max_gates 4
+
   use Application
 
   def start(_type, _args) do
@@ -17,6 +19,10 @@ defmodule Parking.Application do
       # Starts a worker by calling: Parking.Worker.start_link(arg)
       # {Parking.Worker, arg},
       {Horde.Registry, keys: :unique, name: Parking.Registry},
+      Supervisor.child_spec(
+        {Horde.Supervisor, strategy: :one_for_one, name: Parking.GateSupervisor},
+        id: :gate_supervisor
+      ),
       %{
         id: Parking.HordeConnector,
         restart: :transient,
@@ -27,6 +33,13 @@ defmodule Parking.Application do
             fn ->
               # Join nodes to distributed Registry
               Horde.Cluster.set_members(Parking.Registry, membership(Parking.Registry, nodes()))
+
+              Horde.Cluster.set_members(
+                Parking.GateSupervisor,
+                membership(Parking.GateSupervisor, nodes())
+              )
+
+              1..@max_gates |> Enum.map(&init_gate/1)
             end
           ]
         }
@@ -49,4 +62,7 @@ defmodule Parking.Application do
   defp nodes, do: [Node.self()] ++ Node.list()
 
   defp membership(horde, nodes), do: Enum.map(nodes, fn node -> {horde, node} end)
+
+  defp init_gate(number),
+    do: Horde.Supervisor.start_child(Parking.GateSupervisor, {Parking.Gate, number})
 end
