@@ -41,13 +41,18 @@ defmodule Parking.Gate do
 
   ## Server Callbacks
 
-  def handle_cast({:enter, license}, state) do
-    # TODO: Add new license to state of lot
+  def handle_cast({:enter, license}, %{number: number} = state) do
+    if Parking.Lot.available_spaces() >= 0 do
+      Parking.Lot.track_entry(license, number)
+    else
+      Logger.warn("===> Gate No. #{number} reporting lot full")
+    end
+
     {:noreply, state}
   end
 
-  def handle_cast({:exit, license}, state) do
-    # TODO: Remove license from state of lot
+  def handle_cast({:exit, license}, %{number: number} = state) do
+    Parking.Lot.track_exit(license, number)
     {:noreply, state}
   end
 end

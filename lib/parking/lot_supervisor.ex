@@ -8,6 +8,7 @@ defmodule Parking.LotSupervisor do
       # Manages distributed state
       {
         DeltaCrdt,
+        on_diffs: fn _diffs -> send(Parking.Lot, :update_state) end,
         sync_interval: 300,
         max_sync_size: :infinite,
         shutdown: 30_000,

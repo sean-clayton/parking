@@ -39,6 +39,19 @@ defmodule Parking.Lot do
 
   ## Server Callbacks
 
+  def handle_info(:update_state, state) do
+    # Read CRDT state and group by key type
+    crdt_state =
+      DeltaCrdt.read(@crdt)
+      |> Enum.group_by(fn {{k, _}, _} -> k end, fn {{_, kv}, v} -> {kv, v} end)
+
+    # Set vehicles from CRDT if present
+    vehicles = crdt_state |> Map.get(:vehicle, []) |> Map.new()
+    state = Map.put(state, :vehicles, vehicles)
+
+    {:noreply, state}
+  end
+
   def handle_call(:available_spaces, _from, %{max_spaces: max_spaces, vehicles: vehicles} = state) do
     {:reply, max_spaces - map_size(vehicles), state}
   end
