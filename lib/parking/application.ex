@@ -4,6 +4,7 @@ defmodule Parking.Application do
   @moduledoc false
 
   @max_gates 4
+  @max_spaces 100
 
   use Application
 
@@ -19,6 +20,7 @@ defmodule Parking.Application do
       # Starts a worker by calling: Parking.Worker.start_link(arg)
       # {Parking.Worker, arg},
       {Horde.Registry, keys: :unique, name: Parking.Registry},
+      {Parking.LotSupervisor, [[max_spaces: @max_spaces], [name: Parking.LotSupervisor]]},
       Supervisor.child_spec(
         {Horde.Supervisor, strategy: :one_for_one, name: Parking.GateSupervisor},
         id: :gate_supervisor
@@ -38,6 +40,8 @@ defmodule Parking.Application do
                 Parking.GateSupervisor,
                 membership(Parking.GateSupervisor, nodes())
               )
+
+              Parking.LotSupervisor.join_neighbourhood(nodes())
 
               1..@max_gates |> Enum.map(&init_gate/1)
             end
