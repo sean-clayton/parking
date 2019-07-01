@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: parking
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: parking
+    spec:
+      containers:
+        - name: parking
+          # Using local image for demonstration
+          image: parking:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          # Command to run against entrypoint
+          args: ["start"]
+          env:
+            - name: PORT
+              value: "8000"
+            - name: SECRET_KEY_BASE
+              value: "not-a-secret"
+            - name: RELEASE_COOKIE
+              value: "monster"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP

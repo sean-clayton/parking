@@ -58,4 +58,14 @@ config :parking, ParkingWeb.Endpoint, server: true
 # Then you can assemble a release by calling `mix release`.
 # See `mix help release` for more information.
 
-config :libcluster, topologies: []
+config :libcluster,
+  topologies: [
+    k8s: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes.DNS,
+      config: [
+        service: "parking-service-headless",
+        application_name: "parking",
+        polling_interval: 3_000
+      ]
+    ]
+  ]
