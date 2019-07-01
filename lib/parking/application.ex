@@ -6,8 +6,12 @@ defmodule Parking.Application do
   use Application
 
   def start(_type, _args) do
+    # Retrieve the topologies from the config
+    topologies = Application.get_env(:libcluster, :topologies)
+
     # List all child processes to be supervised
     children = [
+      {Cluster.Supervisor, [topologies, [name: Parking.ClusterSupervisor]]},
       # Start the endpoint when the application starts
       ParkingWeb.Endpoint
       # Starts a worker by calling: Parking.Worker.start_link(arg)

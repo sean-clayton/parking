@@ -57,3 +57,5 @@ config :parking, ParkingWeb.Endpoint, server: true
 
 # Then you can assemble a release by calling `mix release`.
 # See `mix help release` for more information.
+
+config :libcluster, topologies: []
