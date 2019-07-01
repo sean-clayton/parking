@@ -13,9 +13,24 @@ defmodule Parking.Application do
     children = [
       {Cluster.Supervisor, [topologies, [name: Parking.ClusterSupervisor]]},
       # Start the endpoint when the application starts
-      ParkingWeb.Endpoint
+      ParkingWeb.Endpoint,
       # Starts a worker by calling: Parking.Worker.start_link(arg)
       # {Parking.Worker, arg},
+      {Horde.Registry, keys: :unique, name: Parking.Registry},
+      %{
+        id: Parking.HordeConnector,
+        restart: :transient,
+        start: {
+          Task,
+          :start_link,
+          [
+            fn ->
+              # Join nodes to distributed Registry
+              Horde.Cluster.set_members(Parking.Registry, membership(Parking.Registry, nodes()))
+            end
+          ]
+        }
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -30,4 +45,8 @@ defmodule Parking.Application do
     ParkingWeb.Endpoint.config_change(changed, removed)
     :ok
   end
+
+  defp nodes, do: [Node.self()] ++ Node.list()
+
+  defp membership(horde, nodes), do: Enum.map(nodes, fn node -> {horde, node} end)
 end

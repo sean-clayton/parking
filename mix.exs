@@ -37,7 +37,9 @@ defmodule Parking.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:libcluster, "~> 3.1.0"}
+      {:libcluster, "~> 3.1.0"},
+      {:horde, "~> 0.6.0"},
+      {:delta_crdt, "~> 0.5.1"}
     ]
   end
 end
